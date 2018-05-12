@@ -1,0 +1,51 @@
+{
+  "name": "@jdxcode/json",
+  "version": "0.0.0",
+  "author": "Jeff Dickey @jdxcode",
+  "bin": {
+    "json": "./bin/run"
+  },
+  "bugs": "https://github.com/jdxcode/json/issues",
+  "dependencies": {
+    "@oclif/command": "^1",
+    "@oclif/config": "^1",
+    "@oclif/plugin-help": "^1",
+    "tslib": "^1",
+    "typescript": "^2.8"
+  },
+  "devDependencies": {
+    "@oclif/test": "^1",
+    "@oclif/tslint": "^1",
+    "@types/chai": "^4",
+    "@types/mocha": "^5",
+    "@types/node": "^10",
+    "chai": "^4",
+    "mocha": "^5",
+    "nyc": "^11",
+    "ts-node": "^6",
+    "tslint": "^5"
+  },
+  "engines": {
+    "node": ">=8.0.0"
+  },
+  "files": [
+    "/bin",
+    "/lib"
+  ],
+  "homepage": "https://github.com/jdxcode/json",
+  "keywords": [
+    "oclif"
+  ],
+  "license": "MIT",
+  "main": "lib/index.js",
+  "oclif": {
+    "bin": "json"
+  },
+  "repository": "jdxcode/json",
+  "scripts": {
+    "posttest": "tsc -p test --noEmit && tslint -p test -t stylish",
+    "prepack": "rm -rf lib && tsc",
+    "test": "nyc mocha --forbid-only \"test/**/*.test.ts\""
+  },
+  "types": "lib/index.d.ts"
+}
