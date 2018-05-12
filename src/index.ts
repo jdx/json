@@ -1,28 +1,61 @@
 import {Command, flags} from '@oclif/command'
+import * as _ from 'lodash'
+import {inspect} from 'util'
+
+const sw = require('string-width')
 
 class JdxcodeJson extends Command {
   static description = 'describe the command here'
 
   static flags = {
-    // add --version flag to show CLI version
     version: flags.version({char: 'v'}),
     help: flags.help({char: 'h'}),
-    // flag with a value (-n, --name=VALUE)
-    name: flags.string({char: 'n', description: 'name to print'}),
-    // flag with no value (-f, --force)
-    force: flags.boolean({char: 'f'}),
+    table: flags.string({char: 't'}),
   }
 
-  static args = [{name: 'file'}]
+  columns!: string[]
 
   async run() {
-    const {args, flags} = this.parse(JdxcodeJson)
+    const {flags} = this.parse(JdxcodeJson)
+    if (flags.table) this.columns = flags.table.split(',')
+    if (process.stdin.isTTY) this.error(`USAGE: echo '{"foo": "bar"}' | json`)
+    const input = await this.read()
+    this.debug(input)
+    if (flags.table) return this.table(input)
+    process.stdout.write(inspect(input) + '\n')
+  }
 
-    const name = flags.name || 'world'
-    this.log(`hello ${name} from ./src/index.ts`)
-    if (args.file && flags.force) {
-      this.log(`you input --force and --file: ${args.file}`)
+  table(arr: any[]) {
+    if (!Array.isArray(arr)) throw new Error('not an array')
+    const table = arr.map(row => this.columns.map(c => {
+      const v = _.get(row, c)
+      return typeof v === 'string' ? v : inspect(v, {breakLength: Infinity})
+    }))
+    const widths = _.map(this.columns, (__, i) => sw(_.maxBy(table.map(row => row[i]), r => sw(r)) || '') + 1)
+    for (let row of table) {
+      for (let j = 0; j < row.length; j++) {
+        let o = row[j].padEnd(widths[j])
+        process.stdout.write(o)
+      }
+      process.stdout.write('\n')
     }
+  }
+
+  get maxWidth() {
+    return (process.stdout as any).getWindowSize()[0]
+  }
+
+  read() {
+    process.stdin.setEncoding('utf8')
+    return new Promise<any>(resolve => {
+      let input = ''
+      process.stdin.on('readable', () => {
+        input += process.stdin.read() || ''
+      })
+      process.stdin.on('end', () => {
+        resolve(JSON.parse(input))
+      })
+    })
   }
 }
 
